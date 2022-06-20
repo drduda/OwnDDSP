@@ -1,0 +1,20 @@
+absl-py
+cloudml-hypertune
+crepe>=0.0.11
+future
+gin-config>=0.3.0
+google-cloud-storage
+librosa
+pydub
+mir_eval
+note_seq
+numba < 0.50
+numpy
+scipy
+six
+tensorflow
+tensorflow-addons
+tensorflowjs
+tensorflow-probability
+tensorflow-datasets
+tflite_support
