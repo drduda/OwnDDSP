@@ -1,0 +1,55 @@
+import ddsp
+import ddsp.training
+
+# Preprocessor
+models.Autoencoder.preprocessor = @preprocessing.F0LoudnessPreprocessor()
+preprocessing.F0LoudnessPreprocessor.time_steps = 1000
+
+
+# Encoder
+models.Autoencoder.encoder = None
+
+# Decoder
+models.Autoencoder.decoder = @decoders.RnnFcDecoder()
+decoders.RnnFcDecoder.rnn_channels = 256
+decoders.RnnFcDecoder.rnn_type = 'gru'
+decoders.RnnFcDecoder.ch = 256
+decoders.RnnFcDecoder.layers_per_stack = 1
+decoders.RnnFcDecoder.input_keys = ('ld_scaled', 'f0_scaled')
+decoders.RnnFcDecoder.output_splits = (('amps', 1),
+                                       ('harmonic_distribution', 20),
+                                       ('noise_magnitudes', 20))
+
+# ProcessorGroup
+models.Autoencoder.processor_group = @processors.ProcessorGroup()
+
+processors.ProcessorGroup.dag = [
+  (@harmonic/synths.Harmonic(),
+    ['amps', 'harmonic_distribution', 'f0_hz']),
+  (@noise/synths.FilteredNoise(),
+    ['noise_magnitudes']),
+  (@add/processors.Add(),
+    ['noise/signal', 'harmonic/signal']),
+]
+
+# Harmonic Synthesizer
+harmonic/synths.Harmonic.name = 'harmonic'
+harmonic/synths.Harmonic.n_samples = 64000
+harmonic/synths.Harmonic.scale_fn = @core.exp_sigmoid
+
+# Filtered Noise Synthesizer
+noise/synths.FilteredNoise.name = 'noise'
+noise/synths.FilteredNoise.n_samples = 64000
+noise/synths.FilteredNoise.window_size = 0
+noise/synths.FilteredNoise.scale_fn = @core.exp_sigmoid
+noise/synths.FilteredNoise.initial_bias = -10.0
+
+# Add
+add/processors.Add.name = 'add'
+
+models.Autoencoder.losses = [
+    @losses.SpectralLoss(),
+]
+losses.SpectralLoss.loss_type = 'L1'
+losses.SpectralLoss.mag_weight = 1.0
+losses.SpectralLoss.logmag_weight = 1.0
