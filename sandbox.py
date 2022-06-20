@@ -25,8 +25,8 @@ batch = next(iter(dataset))
 audio = batch['audio']
 n_samples = audio.shape[1]
 """
-audio = tf.math.sin(tf.linspace(0, 16000, 16000*3))
-audio_features = ddsp.training.metrics.compute_audio_features(audio)
+audio = tf.math.sin(tf.linspace(0, 16000, 16000*3))[tf.newaxis, :]
+
 #todo normalize??
 strategy = train_util.get_strategy()
 
