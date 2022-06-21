@@ -38,8 +38,7 @@ with gin.unlock_config():
   gin.parse_config(lines)
 
 with strategy.scope():
-  # Autoencoder arguments are filled by gin.
-  model = ddsp.training.models.Autoencoder()
+    model = models.get_model()
 
 audio_features = ddsp.training.metrics.compute_audio_features(audio)
 
