@@ -1,6 +1,11 @@
 import ddsp
 import ddsp.training
 
+# =====
+# Model
+# =====
+get_model.model = @models.Autoencoder()
+
 # Preprocessor
 models.Autoencoder.preprocessor = @preprocessing.F0LoudnessPreprocessor()
 preprocessing.F0LoudnessPreprocessor.time_steps = 1000
