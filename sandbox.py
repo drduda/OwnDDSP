@@ -34,13 +34,27 @@ strategy = train_util.get_strategy()
 with open(sys.argv[1]) as f:
     lines = f.readlines()
 
+with open(sys.argv[2]) as f:
+    lines.extend(f.readlines())
+
 with gin.unlock_config():
   gin.parse_config(lines)
 
 with strategy.scope():
     model = models.get_model()
 
-audio_features = ddsp.training.metrics.compute_audio_features(audio)
+    trainer = trainers.get_trainer_class()(model, strategy)
 
-output = model(audio_features, training=False)
-print("Done")
+
+
+train_util.train(data_provider=gin.REQUIRED,
+          trainer=trainer,
+          batch_size=32,
+          num_steps=1000,
+          steps_per_summary=300,
+          steps_per_save=300,
+          save_dir='/tmp/ddsp',
+          restore_dir='/tmp/ddsp',
+          early_stop_loss_value=None,
+          report_loss_to_hypertune=False)
+print("done")
