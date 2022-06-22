@@ -45,16 +45,20 @@ with strategy.scope():
 
     trainer = trainers.get_trainer_class()(model, strategy)
 
+data_provider = ddsp.training.data.TFRecordProvider(file_pattern="/home/marko/PycharmProjects/OwnDDSP/data/cello/tf_record*")
 
+# Get a distributed dataset iterator.
+dataset = data_provider.get_batch(16, shuffle=True, repeats=-1)
+dataset = trainer.distribute_dataset(dataset)
+dataset_iter = iter(dataset)
 
-train_util.train(data_provider=gin.REQUIRED,
-          trainer=trainer,
-          batch_size=32,
-          num_steps=1000,
-          steps_per_summary=300,
-          steps_per_save=300,
-          save_dir='/tmp/ddsp',
-          restore_dir='/tmp/ddsp',
-          early_stop_loss_value=None,
-          report_loss_to_hypertune=False)
-print("done")
+# Build model, easiest to just run forward pass.
+trainer.build(next(dataset_iter))
+dataset_iter = iter(dataset)
+
+for i in range(300):
+  losses = trainer.train_step(dataset_iter)
+  res_str = 'step: {}\t'.format(i)
+  for k, v in losses.items():
+    res_str += '{}: {:.2f}\t'.format(k, v)
+  print(res_str)
